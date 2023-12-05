@@ -1,0 +1,61 @@
+
+- name: copy repo file
+  copy: src=/tmp/env-t.repo dest=/etc/yum.repos.d mode=644
+
+- name: install containerd.io
+  yum:
+    name:
+    - "{{ containerd_version }}"
+    state: latest
+    enablerepo: env-t
+
+- name: copy modules-load.d
+  copy:
+    src: "{{ role_path }}/files/{{item.src}}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: "containerd.conf", dest: "/etc/modules-load.d/containerd.conf" }
+    - { src: "config.toml", dest: "/etc/containerd/config.toml" }
+    - { src: "crictl.yaml", dest: "/etc/crictl.yaml" }
+  
+- name: systemctl containerd start
+  ansible.builtin.systemd_service:
+    name: containerd
+    daemon_reload: true
+    state: started
+    enabled: true
+
+- name: containerd.io version
+  shell: containerd -v
+  register: myshell_output
+
+- name: containerd.io verson output
+  debug: 
+    msg: "containerd.io versoin: {{ myshell_output.stdout }}"
+
+- name: copy nerdctl cni_plugin
+  copy: 
+   src: "/tmp/{{ item.src }}"
+   dest: "/opt/{{ item.dest }}"
+  loop:
+    - { src: "{{ nerdctl_package }}", dest: "{{ nerdctl_package }}" }
+    - { src: "{{ cni_plugin }}", dest: "{{ cni_plugin }}" }
+
+- name: untar cni_plugin nerdctl
+  ansible.builtin.unarchive:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: "/opt/{{ nerdctl_package }}", dest: "/usr/bin/" }
+    - { src: "/opt/{{ cni_plugin }}", dest: "/opt/cni/bin/" }
+
+- name: Changing perm of nerdctl, adding "+x"
+  file: dest=/usr/bin/nerdctl mode=a+x
+
+- name: nerdctl version
+  shell: nerdctl -v
+  register: nerdctl_output
+
+- name: nerdctl verson output
+  debug:
+    msg: "nerdctl versoin: {{ nerdctl_output.stdout }}"

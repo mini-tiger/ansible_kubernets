@@ -1,0 +1,67 @@
+- name: install packages
+  yum:
+    name:
+    - kernel-lt
+    - kernel-lt-doc
+    - kernel-lt-devel
+    state: latest
+    enablerepo: env-t
+    skip_broken: true
+    update_cache: true
+
+- name: grub set
+  shell: grub2-set-default 0
+
+- name: grub config 
+  shell: grub2-mkconfig -o /boot/grub2/grub.cfg
+
+
+- name: debug kernel_need_update
+  debug:  
+   # vars: "{{ kernel_need_update }}"
+    msg: "(hostvars[inventory_hostname].ansible_master | default(0) != 1)"
+
+- name: debug reboot_timeout
+  debug:
+   # vars: "{{ reboot_timeout }}"
+    msg: "{{ reboot_timeout }}"
+
+- name: Reboot a slow machine that might have lots of updates to apply
+  ansible.builtin.reboot:
+    reboot_timeout: "{{ reboot_timeout }}"
+    test_command: uptime
+  when: (hostvars[inventory_hostname].ansible_master | default(0) != 1) # host文件 配置变量,跳过本机
+
+
+- name: confirm kernel version
+  shell: uname -a
+  register: kernel_version
+
+- name: 当前内核版本
+  debug: 
+    var=kernel_version.stdout
+
+# modprobe
+#- name: Add modprobe
+#  community.general.modprobe:
+#    name: "{{ item.name }}"
+#    state: present
+#  loop:
+#    - { name: "br_netfilter" }
+#    - { name: "ip_vs" }
+#    - { name: "ip_vs_rr" }
+#    - { name: "ip_vs_sh" }
+#    - { name: "ip_vs_wrr" }
+#    - { name: "nf_conntrack_ipv4" }
+
+
+- name: modprobe add (1/2)
+  copy:
+    src: '{{role_path}}/files/{{ item.src }}'
+    dest: '{{ item.dest }}'
+  with_items:
+    - { src: 'ipvs.conf', dest: '/etc/modules-load.d/' }
+    - { src: 'systemd-modules-load.service', dest: '/usr/lib/systemd/system/' }
+
+- name: modprobe add (2/2)
+  shell: systemctl daemon-reload && systemctl enable --now systemd-modules-load.service

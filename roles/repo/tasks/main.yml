@@ -1,0 +1,57 @@
+#- name: create repor backup directory
+#  shell: mkdir -p /etc/yum.repos.d/back
+#  ignore_errors: yes
+#  when: (ansible_architecture) == "x86_64"
+
+#- name: backup repos file
+#  shell: mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/back
+#  ignore_errors: yes
+#  when: (ansible_architecture) == "x86_64"
+
+- name: copy repo file
+  copy: src=/tmp/env-t.repo dest=/etc/yum.repos.d mode=644
+
+#- name: copy epel repo
+#  copy: src={{role_path}}/files/epel.repo dest=/etc/yum.repos.d mode=644
+
+#- name: remove packages
+#  yum:
+#    name:
+#    - socat
+#    - lvm2
+#    - conntrack
+#    - ebtables
+#    - ipset
+#    - ipvsadm
+#    - iptables
+#    - iptables-devel
+#    - policycoreutils
+#    state: absent
+#  when: (ansible_architecture) == "x86_64"
+
+- name: install packages
+  yum:
+    name:
+    - socat
+    - lvm2
+    - conntrack
+    - ebtables
+    - ipset
+    - ipvsadm
+    - iptables
+    - iptables-devel
+    - sysstat
+    - net-tools
+    - firewalld
+    - chrony
+    state: latest
+    enablerepo: env-t
+
+- name: install kubelet kubeadm
+  yum:
+    name:
+    - kubelet-1.26.9-0
+    - kubeadm-1.26.9-0
+    - kubectl-1.26.9-0
+    state: present
+    enablerepo: env-t

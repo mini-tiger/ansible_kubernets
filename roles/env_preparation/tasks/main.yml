@@ -1,0 +1,150 @@
+---
+- name: Disable SELinux
+  ansible.posix.selinux:
+    state: disabled
+
+- name: Stop service firewalld 
+  ansible.builtin.systemd_service:
+    name: firewalld
+    state: stopped
+    enabled: false
+  when: (ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "7") and (ansible_architecture) == "x86_64"
+  ignore_errors: yes
+
+
+
+
+
+# sysctl
+- name: copy k8s sysctl file
+  copy: src={{role_path}}/files/k8s.conf dest=/etc/sysctl.d/ mode=644
+
+- name: sysctl run
+  shell: sysctl --system
+
+#- name: sysctl conf
+#  sysctl:
+#     name: "{{ item.name }}"
+#     value: "{{ item.value }}"
+#     state: present
+#     sysctl_file: /etc/sysctl.conf
+#     reload: true
+#  loop:
+#     - { name: "net.ipv4.ip_forward", value: 1 }
+#     - { name: "net.bridge.bridge-nf-call-ip6tables", value: 1 }
+#     - { name: "net.bridge.bridge-nf-call-iptables", value: 1 }
+#     - { name: "net.ipv4.tcp_syncookies", value: 1 }
+#     - { name: "fs.may_detach_mounts", value: 1 }
+#     - { name: "vm.overcommit_memory", value: 1 }
+#     - { name: "net.ipv4.conf.all.route_localnet", value: 1 }
+#     - { name: "vm.panic_on_oom", value: 0 }
+#     - { name: "fs.inotify.max_user_watches", value: 89100 }
+#     - { name: "fs.file-max", value: 52706963 }
+#     - { name: "fs.nr_open", value: 52706963 }
+#     - { name: "net.netfilter.nf_conntrack_max", value: 2310720 }
+
+# xxx iptable skip
+#- name: run iptables rules
+#  shell: firewall-cmd --add-rich-rule='rule family="ipv4" source address="10.253.0.0/16" destination address="10.96.0.0/12" accept'
+#- name: run iptables rules permanent
+#  shell: firewall-cmd --add-rich-rule='rule family="ipv4" source address="10.253.0.0/16" destination address="10.96.0.0/12" accept' --permanent
+
+# swap
+#- name: Disable SWAP in fstab since kubernetes can't work with swap enabled (2/2)
+#  replace:
+#    path: /etc/fstab
+#    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+#    replace: '#\1\2\3swap\4'
+
+- name: Remove Swap entry from /etc/fstab.
+  lineinfile:
+     dest: /etc/fstab
+     regexp: swap
+     state: absent
+
+- name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
+  shell: |
+    swapoff -a
+
+# timezone
+- name: Set timezone to Asia/Shanghai
+  community.general.timezone:
+    name: Asia/Shanghai
+
+- name: 注释chrony.conf server
+  replace:
+    path: /etc/chrony.conf
+    regexp: "^server"
+    replace: "#server"
+
+- name: chrony server 配置
+  lineinfile:
+    path: /etc/chrony.conf
+    insertbefore: '^# Record the'
+    line: "server ntp.aliyun.com"
+  when: "'master' in group_names" # just run master
+
+
+
+- name: Get Master IP addresses of group master (1/2)
+  set_fact:
+    master_ips: []
+
+#- name: Get Master IP addresses of group master (2/2)
+#  set_fact:
+#    master_ips: "{{ master_ips + [hostvars[item]['ansible_all_ipv4_addresses'][0]] }}"
+#  loop: "{{ groups['master'] }}"
+
+- name: Get Master IP addresses of group master (2/2)
+  set_fact:
+    master_ips: "{{ master_ips + [item] }}"
+  loop: "{{ groups['master'] }}"
+
+
+- name: Print all facts of group master
+  debug:
+    var: master_ips
+
+- name: chrony client 配置
+  lineinfile:
+    path: /etc/chrony.conf
+    insertbefore: '^# Record the'  # 在这行前面
+    line: "server {{ item }}"
+  loop: "{{ master_ips }}" 
+  when: "'worker' in group_names" # just run worker
+  
+
+- name: restart chrony 
+  ansible.builtin.systemd_service:
+    name: chronyd
+    state: restarted
+    enabled: true
+
+
+
+# ulimit
+- name: ulimit -n 
+  shell: ulimit -SHn 65535
+
+- name: Add or modify soft nofile limits for wildcard domain
+  community.general.pam_limits:
+    domain: '*'
+    limit_type: soft
+    limit_item: "{{ item.name }}"
+    value: "{{ item.value }}"
+  loop:
+    - { name: "nofile", value: 65536 }
+    - { name: "nproc", value: 655350 }
+    - { name: "memlock", value: unlimited }
+
+
+- name: Add or modify hard nofile limits for wildcard domain
+  community.general.pam_limits:
+    domain: '*'
+    limit_type: hard
+    limit_item: "{{ item.name }}"
+    value: "{{ item.value }}"
+  loop:
+    - { name: "nofile", value: 131072 }
+    - { name: "nproc", value: 65535 }
+    - { name: "memlock", value: unlimited }

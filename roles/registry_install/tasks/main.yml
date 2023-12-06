@@ -1,0 +1,10 @@
+- name: pull registry:2.8.3
+  shell: nerdctl pull registry:2.8.3
+  environment:
+    ALL_PROXY: "{{ proxy }}"
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+  
+- name: run registry 
+#  shell:  $(nerdctl ps | grep registry | wc -l) -lte 0 && nerdctl run -d --net=host -v /opt/data/registry:/var/lib/registry --restart always --name registry registry:2.8.3
+  shell: if [ $(nerdctl ps | grep registry | wc -l) -eq 0 ]; then nerdctl run -d --net=host -v /opt/data/registry:/var/lib/registry --restart always --name registry registry:2.8.3 ;fi
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)

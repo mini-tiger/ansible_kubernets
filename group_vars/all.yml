@@ -12,5 +12,7 @@ containerd_version: containerd.io-1.6.25
 nerdctl_package: nerdctl-1.7.1-linux-amd64.tar.gz
 cni_plugin: cni-plugins-linux-amd64-v1.3.0.tgz
 
-#
+# ha
 vip: 192.168.254.150
+network_interface_name: ens33
+

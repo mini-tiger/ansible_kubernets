@@ -1,0 +1,18 @@
+- name: Set local variable in the role
+  set_fact:
+    master1_ip: "{{ groups['master'][0] }}"
+    master2_ip: "{{ groups['master'][1] }}"
+    master3_ip: "{{ groups['master'][2] }}"
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)    
+
+
+- name: Get IP address of current host
+  debug:
+    msg: "{{ master1_ip }},{{ master2_ip }},{{ master3_ip }},{{ vip }}"
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+- name: create kubeadm config file
+  template:
+    src: "{{ role_path }}/templates/kubeadm-config.yaml.j2"
+    dest: /opt/kubeadm-config.yaml
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)

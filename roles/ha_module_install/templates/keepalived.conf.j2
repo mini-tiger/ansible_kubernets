@@ -15,7 +15,7 @@ vrrp_script chk_haproxy {
 
 vrrp_instance lb-vips {
     state MASTER
-    interface ens33
+    interface {{ network_interface_name }}
     virtual_router_id 100
     priority 150
     advert_int 1
@@ -28,6 +28,6 @@ vrrp_instance lb-vips {
         auth_pass blahblah
     }
     virtual_ipaddress {
-        192.168.254.150
+        {{ vip }}
     }
 }

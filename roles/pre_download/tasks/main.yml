@@ -140,3 +140,4 @@
   template:
     src: "{{ role_path }}/templates/env-t.repo.j2"
     dest: /tmp/env-t.repo
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)

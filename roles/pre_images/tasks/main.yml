@@ -1,0 +1,24 @@
+- name: Set local variable in the role
+  set_fact:
+    ansible_host: "{{ inventory_hostname }}"
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+  
+
+- name: Get IP address of current host
+  debug:
+    var: ansible_host
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+- name: Get image pull list
+  shell: kubeadm config images list --config=/opt/kubeadm-config.yaml
+  register: pull_list
+
+- name: print pull list 
+  debug:
+    var=pull_list.stdout
+
+- name: image script run
+  shell: "{{ role_path}}/files/images.sh {{ansible_host}} /opt"
+  register: result
+  failed_when:
+    - result.rc == 1

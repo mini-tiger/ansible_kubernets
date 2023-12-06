@@ -3,15 +3,24 @@
 #  roles:
 #  - {role: pre_download} # ansible 需要能上网
 
-- hosts: master,worker
+- hosts: master
   roles:
 #  - {role: repo}  # kubelet kubeadm 
-  - {role: env_preparation} # chrony sysctl ulimit swap
+#  - {role: env_preparation} # chrony sysctl ulimit swap
 #  - {role: hostname}
 #  - {role: kernel_update}
 #  - {role: containerd}  
-  - {role: ha_module_yaml}
-#  - {role: disk}
+  - {role: ha_module_install}
+
+
+- hosts: ansible_manager
+  gather_facts: false
+  roles:
+  - {role: kubeadm_config_create}
+  - {role: registry_install}
+  - {role: pre_images} #
+#
+
 #- hosts: master
 #  roles:
 #  - {role: master-openports}

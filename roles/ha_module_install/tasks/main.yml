@@ -30,13 +30,35 @@
     enablerepo: env-t
     update_cache: true
 
-- name: create keepalived cfg
+
+- name: Set local variable in the role
+  set_fact:
+    master1_ip: "{{ groups['master'][0] }}"
+    master2_ip: "{{ groups['master'][1] }}"
+    master3_ip: "{{ groups['master'][2] }}"
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+
+- name: create jinja2 keepalived haproxy config file
+  template:
+    src: "{{ role_path }}/templates/{{ item.src}}"
+    dest: "/opt/{{ item.dest }}"
+  loop:
+    - { src: "kube-haproxy.cfg.j2", dest: "kube-haproxy.cfg" }
+    - { src: "keepalived.conf.j2", dest: "keepalived.conf" }
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+
+- name: copy  keepalived haproxy config file
   copy:
-    src: "{{ role_path }}/files/{{item.src}}"
+    src: "{{item.src}}"
     dest: "{{ item.dest }}"
   loop:
-    - { src: "kube-haproxy.cfg", dest: "/etc/haproxy/haproxy.cfg" }
-    - { src: "keepalived.conf", dest: "/etc/keepalived/keepalived.conf" }
+    - { src: "/opt/kube-haproxy.cfg", dest: "/etc/haproxy/haproxy.cfg" }
+    - { src: "/opt/keepalived.conf", dest: "/etc/keepalived/keepalived.conf" }
+
+
+
 
 - name: systemctl keepalived haproxy start
   ansible.builtin.systemd_service:

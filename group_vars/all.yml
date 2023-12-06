@@ -2,7 +2,14 @@
 reboot_timeout: 600
 
 # proxy
-proxy: http://192.168.254.1:1081
+#proxy: http://192.168.254.1:1081
+proxy_env:
+  use_proxy: yes
+  all_proxy: http://192.168.1.57:1081
+  ALL_PROXY: http://192.168.1.57:1081
+  http_proxy: http://192.168.1.57:1081
+  #https_proxy: http://192.168.1.33:1080
+  HTTP_PROXY: http://192.168.1.57:1081
 
 # repo dir
 repo_dir: /usr/share/nginx/html/x86_64
@@ -13,6 +20,6 @@ nerdctl_package: nerdctl-1.7.1-linux-amd64.tar.gz
 cni_plugin: cni-plugins-linux-amd64-v1.3.0.tgz
 
 # ha
-vip: 192.168.254.150
+vip: 192.168.1.40
 network_interface_name: ens33
 

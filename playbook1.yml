@@ -1,15 +1,16 @@
-#- hosts: ansible_manager
-#  gather_facts: false
-#  roles:
-#  - {role: pre_download} # ansible 需要能上网
+- hosts: ansible_manager
+  gather_facts: false
+  roles:
+  - {role: pre_download} # ansible 需要能上网
 
 - hosts: master
+ # gather_facts: false
   roles:
-#  - {role: repo}  # kubelet kubeadm 
-#  - {role: env_preparation} # chrony sysctl ulimit swap
-#  - {role: hostname}
-#  - {role: kernel_update}
-#  - {role: containerd}  
+  - {role: repo}  # kubelet kubeadm 
+  - {role: env_preparation} # chrony sysctl ulimit swap
+  - {role: hostname}
+  - {role: kernel_update}
+  - {role: containerd}  
   - {role: ha_module_install}
 
 

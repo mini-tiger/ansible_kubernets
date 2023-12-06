@@ -1,0 +1,57 @@
+
+#- name: Creates /etc/kubernetes/manifests directory
+#  ansible.builtin.file:
+#    path: /etc/kubernetes/manifests
+#    state: directory
+
+
+#- name: create keepalived yml to /etc/kubernetes/manifests
+#  copy:
+#    src: "{{ role_path }}/files/{{item.src}}"
+#    dest: "{{ item.dest }}"
+#  loop:
+#    - { src: "kube-haproxy.yaml", dest: "/etc/kubernetes/manifests/kube-haproxy.yaml" }
+#    - { src: "kube-keepalived.yaml", dest: "/etc/kubernetes/manifests/kube-keepalived.yaml" }
+#    - { src: "kube-haproxy.cfg", dest: "/etc/kubernetes/kube-haproxy.cfg" } 
+- name: copy repo file
+  copy: src=/tmp/env-t.repo dest=/etc/yum.repos.d mode=644
+
+
+- name: yum makecache
+  shell: yum makecache
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 0)
+
+- name: install packages
+  yum:
+    name:
+    - haproxy
+    - keepalived
+    state: latest
+    enablerepo: env-t
+    update_cache: true
+
+- name: create keepalived cfg
+  copy:
+    src: "{{ role_path }}/files/{{item.src}}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: "kube-haproxy.cfg", dest: "/etc/haproxy/haproxy.cfg" }
+    - { src: "keepalived.conf", dest: "/etc/keepalived/keepalived.conf" }
+
+- name: systemctl keepalived haproxy start
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    daemon_reload: true
+    state: restarted
+    enabled: true
+  loop:
+    - "keepalived"
+    - "haproxy"
+
+- name: test vip ping
+  shell: sleep 3 && ping -c 2 -W 2 "{{ vip }}" > /dev/null 2>&1 && echo "Success" || echo "Failed"
+  register: vip_test
+
+- name: vip_test output
+  debug:
+    msg: "{{ vip }} test ping: {{ vip_test.stdout }}"

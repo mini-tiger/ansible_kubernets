@@ -4,5 +4,7 @@
 [master]
 #127.0.0.1 ansible_connection=local
 192.168.254.133 ansible_master=1
-[worker]
 192.168.254.134
+192.168.254.135
+
+[worker]

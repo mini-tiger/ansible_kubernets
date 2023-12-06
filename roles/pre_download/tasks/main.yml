@@ -47,11 +47,18 @@
 
 
 - name: repotrack downoad depth(1/3)
-  shell: repotrack -p {{ repo_dir }} -a x86_64 libnetfilter_cthelper libnetfilter_cttimeout libnetfilter_queue socat wget container-selinux \
+  shell: repotrack -p {{ repo_dir }} -a x86_64 libnetfilter_cthelper libnetfilter_cttimeout libnetfilter_queue socat wget container-selinux haproxy keepalived \
          lvm2 conntrack ipset ipvsadm ebtables  conntrack ipvsadm ipset jq sysstat curl iptables libseccomp iptables-devel chrony kubelet kubeadm 
   environment:
     ALL_PROXY: "{{ proxy }}"
   when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+#- name: repotrack downoad keepalived haproxy
+#  shell: repotrack -p {{ repo_dir }} haproxy keepalived
+#  environment:
+#    ALL_PROXY: "{{ proxy }}"
+#  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
 
 - name: repotrack kernel package download (2/3)
   shell: repotrack -r elrepo-kernel  -p {{ repo_dir }} -a x86_64  kernel-lt-* && repotrack  -p {{ repo_dir }} -a x86_64  initscripts && \

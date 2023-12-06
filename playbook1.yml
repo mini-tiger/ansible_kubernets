@@ -6,11 +6,11 @@
 - hosts: master,worker
   roles:
 #  - {role: repo}  # kubelet kubeadm 
-#  - {role: env_preparation} # chrony sysctl ulimit swap
+  - {role: env_preparation} # chrony sysctl ulimit swap
 #  - {role: hostname}
 #  - {role: kernel_update}
-  - {role: containerd}  
-#  - {role: firewalld}
+#  - {role: containerd}  
+  - {role: ha_module_yaml}
 #  - {role: disk}
 #- hosts: master
 #  roles:

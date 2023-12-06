@@ -1,12 +1,12 @@
-#- name: create repor backup directory
-#  shell: mkdir -p /etc/yum.repos.d/back
-#  ignore_errors: yes
-#  when: (ansible_architecture) == "x86_64"
+- name: create repor backup directory
+  shell: mkdir -p /etc/yum.repos.d/back
+  ignore_errors: yes
+  when: (ansible_architecture) == "x86_64"
 
-#- name: backup repos file
-#  shell: mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/back
-#  ignore_errors: yes
-#  when: (ansible_architecture) == "x86_64"
+- name: backup repos file
+  shell: mv /etc/yum.repos.d/*.repo /etc/yum.repos.d/back 
+  ignore_errors: yes
+  when: (ansible_architecture) == "x86_64"
 
 - name: copy repo file
   copy: src=/tmp/env-t.repo dest=/etc/yum.repos.d mode=644

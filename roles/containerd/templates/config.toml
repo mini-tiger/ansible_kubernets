@@ -151,6 +151,8 @@ version = 2
         [plugins."io.containerd.grpc.v1.cri".registry.configs."harbor.dev.21vianet.com".tls]
           insecure_skip_verify = true
 
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."{{ inventory_hostname }}:5000".tls]
+          insecure_skip_verify = true
         [plugins."io.containerd.grpc.v1.cri".registry.configs."harbor.dev.21vianet.com".auth]
           username = "admin"
           password = "Ne01ink2022"
@@ -162,8 +164,8 @@ version = 2
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."harbor.dev.21vianet.com"]
           endpoint = ["https://harbor.dev.21vianet.com"]
         
-	[plugins."io.containerd.grpc.v1.cri".registry.mirrors."192.168.254.133:5000"]
-          endpoint = ["https://192.168.254.133:5000"]
+	[plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ inventory_hostname }}:5000"]
+          endpoint = ["http://{{ inventory_hostname }}:5000"]
 
     [plugins."io.containerd.grpc.v1.cri".x509_key_pair_streaming]
       tls_cert_file = ""

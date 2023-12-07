@@ -1,0 +1,19 @@
+
+- name: run join other master
+  shell: sudo chmod +x /opt/worker_join.sh && /opt/worker_join.sh
+  ignore_errors: yes 
+  when: "'worker' in group_names"
+
+- name: test kubectl
+  shell: kubectl get nodes
+  register: kubectl_output
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+- name: test kubectl output
+  debug:
+    msg: "{{ kubectl_output.stdout }}"
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+
+- name: enable start kubelet
+  shell: systemctl enable kubelet

@@ -1,0 +1,16 @@
+- hosts: all
+  roles:
+  - {role: kubeadm_join_cmd_create}
+
+- hosts: worker
+  roles:
+#  - {role: repo}  # kubelet kubeadm
+#  - {role: env_preparation} # chrony sysctl ulimit swap
+#  - {role: hostname}
+#  - {role: kernel_update}
+#  - {role: containerd}
+  - {role: kubeadm_join_more_worker}
+
+- hosts: master
+  roles:
+  - {role: check_k8s_get_node}

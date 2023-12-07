@@ -1,0 +1,28 @@
+
+- name: run join other master
+  shell: sudo chmod +x /opt/master_join.sh && /opt/master_join.sh
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 0)
+  ignore_errors: yes 
+  
+
+- name: run shell init kubeconfig env
+  shell: mkdir -p $HOME/.kube && \sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config && sudo chown $(id -u):$(id -g) $HOME/.kube/config
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 0)
+
+- name: export KUBECONFIG
+  shell: export KUBECONFIG=/etc/kubernetes/admin.conf && echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile &&  echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /root/.basrc
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 0)
+
+- name: test kubectl
+  shell: kubectl -n kube-system get pod
+  register: kubectl_output
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 0)
+
+- name: test kubectl output
+  debug:
+    msg: "{{ kubectl_output.stdout }}"
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 0)
+
+
+- name: enable start kubelet
+  shell: systemctl enable kubelet

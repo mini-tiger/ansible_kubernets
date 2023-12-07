@@ -1,0 +1,24 @@
+- name: kubeadm init run
+  shell: kubeadm init --config=/opt/kubeadm-config.yaml --upload-certs
+  register: myshell_output
+
+- name: kubeadm init output
+  debug:
+    msg: "{{ myshell_output.stdout }}"
+
+- name: run shell init kubeconfig env
+  shell: mkdir -p $HOME/.kube && \sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config && sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+- name: export KUBECONFIG
+  shell: export KUBECONFIG=/etc/kubernetes/admin.conf && echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile &&  echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /root/.basrc
+
+- name: test kubectl
+  shell: kubectl -n kube-system get pod
+  register: kubectl_output
+
+- name: test kubectl output
+  debug:
+    msg: "{{ kubectl.stdout }}"
+
+- name: enable start kubelet
+  shell: systemctl enable kubelet

@@ -1,0 +1,41 @@
+- name: kubeadm join other master or worker cmd create
+  shell: kubeadm token create --print-join-command 
+  register: token_output
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+- name: kubeadm tmp key create
+  shell: kubeadm init phase upload-certs --upload-certs -v=0|grep -vi upload > /tmp/key.tmp
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+- name: kubeadm key create
+  shell: cat /tmp/key.tmp
+  register: key_output
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+
+- name: Set local variable in the role
+  set_fact:
+    kubeadm_join: "{{ token_output.stdout }}"
+    key: "{{ key_output.stdout }}"
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+
+- name: create join shell script 
+  template:
+    src: "{{ role_path }}/templates/{{ item.src}}"
+    dest: "/tmp/{{ item.dest }}"
+  loop:
+    - { src: "master_join.sh.j2", dest: "master_join.sh" }
+    - { src: "worker_join.sh.j2", dest: "worker_join.sh" }
+    
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+- name: copy  shell script to master 
+  copy:
+    src: "{{item.src}}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: "/tmp/master_join.sh", dest: "/opt/master_join.sh" }
+    - { src: "/tmp/worker_join.sh", dest: "/opt/worker_join.sh" }
+  
+

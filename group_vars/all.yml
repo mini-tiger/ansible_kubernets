@@ -5,11 +5,12 @@ reboot_timeout: 600
 #proxy: http://192.168.254.1:1081
 proxy_env:
   use_proxy: yes
-  all_proxy: http://192.168.1.57:1081
-  ALL_PROXY: http://192.168.1.57:1081
-  http_proxy: http://192.168.1.57:1081
-  #https_proxy: http://192.168.1.33:1080
-  HTTP_PROXY: http://192.168.1.57:1081
+  all_proxy: http://192.168.254.1:1081
+  ALL_PROXY: http://192.168.254.1:1081
+  http_proxy: http://192.168.254.1:1081
+  https_proxy: http://192.168.254.1:1081
+  HTTPS_PROXY: http://192.168.254.1:1081
+  HTTP_PROXY: http://192.168.254.1:1081
 
 # repo dir
 repo_dir: /usr/share/nginx/html/x86_64
@@ -19,7 +20,13 @@ containerd_version: containerd.io-1.6.25
 nerdctl_package: nerdctl-1.7.1-linux-amd64.tar.gz
 cni_plugin: cni-plugins-linux-amd64-v1.3.0.tgz
 
-# ha
-vip: 192.168.1.40
+# k8s
+vip: 192.168.254.150
 network_interface_name: ens33
+k8s_version: 1.27.6
+cidr: 10.244.0.0/16 # POD网络
 
+#当前主机网段
+network_cidr: 192.168.254.0/24
+
+calico_versin: 3.26.4 # 值 无作用，提示

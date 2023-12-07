@@ -8,9 +8,9 @@ bootstrapTokens:
   - signing
   - authentication
 kind: InitConfiguration
-localAPIEndpoint:
-  advertiseAddress: {{ master1_ip }}
-  bindPort: 6443
+#localAPIEndpoint:
+#  advertiseAddress: {{ master1_ip }}
+#  bindPort: 6443
 nodeRegistration:
 #  criSocket: unix:///var/run/containerd/containerd.sock
   criSocket: unix:///run/containerd/containerd.sock  # node containerd socket
@@ -21,12 +21,10 @@ nodeRegistration:
 apiServer:
   extraArgs:
     authorization-mode: "Node,RBAC"
-    # nfs/rbd pvc 需要用到
-    feature-gates: RemoveSelfLink=false
     #enable-admission-plugins: "NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeClaimResize,DefaultStorageClass,DefaultTolerationSeconds,NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota,Priority"
     etcd-servers: https://{{ master1_ip }}:2379,https://{{ master2_ip }}:2379,https://{{ master3_ip }}:2379 # etcd 节点列表
   certSANs:
-  - {{ vip }}  # VIP 地址
+  - {{ vip }}  # VIP 地址  # 添加额外的apiserver的域名
   - 10.96.0.1  # service cidr的第一个ip
   - 127.0.0.1 # 多个master的时候负载均衡出问题了能够快速使用localhost调试
   - {{ master1_ip }} # master ip 1
@@ -65,15 +63,15 @@ etcd:
     - {{ master2_ip }}
     - {{ master3_ip }}
 
-#imageRepository: registry.k8s.io
-imageRepository: registry.cn-hangzhou.aliyuncs.com/google_containers  # 修改镜像仓库地址
+imageRepository: {{ master1_ip }}:5000/k8simages
+#imageRepository: registry.cn-hangzhou.aliyuncs.com/google_containers  # 修改镜像仓库地址
 controlPlaneEndpoint: "{{ vip }}:8443"  # 修改控制面域名 or ip,  vip
 kind: ClusterConfiguration
-kubernetesVersion: 1.26.9
+kubernetesVersion: {{ k8s_version }}
 networking:
   dnsDomain: cluster.local
   serviceSubnet: 10.96.0.0/12
-  podSubnet: 10.244.0.0/16  # 设置pod的IP范围
+  podSubnet: {{ cidr }}  # 设置pod的IP范围
 scheduler:
   extraVolumes:
   - hostPath: /etc/localtime

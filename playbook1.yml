@@ -1,38 +1,33 @@
-- hosts: ansible_manager
-  gather_facts: false
-  roles:
-  - {role: pre_download} # ansible 需要能上网
-
-- hosts: master
- # gather_facts: false
-  roles:
-  - {role: repo}  # kubelet kubeadm 
-  - {role: env_preparation} # chrony sysctl ulimit swap
-  - {role: hostname}
-  - {role: kernel_update}
-  - {role: containerd}  
-  - {role: ha_module_install}
-
-
-- hosts: ansible_manager
-  gather_facts: false
-  roles:
-  - {role: kubeadm_config_create}
-  - {role: registry_install}
-  - {role: pre_images} #
-#
+#- hosts: ansible_manager
+#   gather_facts: false
+ # roles:
+#  - {role: pre_download} # ansible 需要能上网 use proxy
 
 #- hosts: master
 #  roles:
-#  - {role: master-openports}
-#- hosts: master,worker
+#  - {role: repo}  # kubelet kubeadm 
+#  - {role: env_preparation} # chrony sysctl ulimit swap
+#  - {role: hostname}
+#  - {role: kernel_update}
+#  - {role: containerd}  
+#  - {role: ha_module_install}
+
+
+#- hosts: ansible_manager
+#  gather_facts: false
 #  roles:
-#  - {role: repo}
-  #- {role: repo}
-  #- {role: firewalld}
-  #- {role: disk}
-  #- {role: ipvs}
-  #- {role: copy_bins}
-#  - {role: proxy-cleanup}
-  #- {role: worker-openports}
-#  - {role: kubelet-cleanup}
+#  - {role: kubeadm_config_create}
+#  - {role: registry_install}
+#  - {role: pre_images} #
+#
+
+#- hosts: ansible_manager
+#  roles:
+#  - {role: kubeadm_init}  # on master1(ansible_manager)
+
+#- hosts: master
+#  roles:
+#  - {role: kubeadm_join_cmd_create}
+#  - {role: kubeadm_join_other_master}
+#  - {role: calico}  # ansible 需要能上网 use proxy
+

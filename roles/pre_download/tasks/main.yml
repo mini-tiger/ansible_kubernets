@@ -18,7 +18,7 @@
     url: "{{ item.url }}"
     dest: "/tmp/{{item.destname}}"
     mode: '0644'
-    use_proxy: true
+#    use_proxy: true
   loop:
      - { url: "https://github.com/containerd/nerdctl/releases/download/v1.7.1/{{ nerdctl_package}}", destname: "{{ nerdctl_package }}" }
      - { url: "https://github.com/containernetworking/plugins/releases/download/v1.3.0/{{ cni_plugin }}", destname: "{{ cni_plugin }}" }
@@ -100,8 +100,7 @@
 
 
 - name: yumdownload kubectl kubeadm kubelet
-#  shell: yumdownloader --resolve --destdir={{ repo_dir }}  kubectl-1.26.9-0 kubeadm-1.26.9-0 kubectl-1.26.9-0
-  shell: yumdownloader --disablerepo="*" --enablerepo="kubernetes" --resolve --destdir={{ repo_dir }}  kubectl-1.26.9-0 kubeadm-1.26.9-0 kubelet-1.26.9-0
+  shell: yumdownloader --disablerepo="*" --enablerepo="kubernetes" --resolve --destdir={{ repo_dir }}  kubectl-1.27.6 kubeadm-1.27.6 kubelet-1.27.6
   environment: "{{ proxy_env }}"
   when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
 

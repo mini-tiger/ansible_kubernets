@@ -1,0 +1,12 @@
+
+- name: run join other master
+  shell: sudo chmod +x /opt/worker_join.sh && /opt/worker_join.sh
+  ignore_errors: yes 
+  register: join_output
+
+- name: worker join output
+  debug:
+    msg: "{{ join_output.stdout }}"
+
+- name: enable start kubelet
+  shell: systemctl enable kubelet

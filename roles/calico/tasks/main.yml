@@ -1,0 +1,25 @@
+- name: image pull script run
+  shell: "{{ role_path}}/files/images.sh {{ansible_host}} {{ role_path }}/files/"
+  register: result
+  failed_when:
+    - result.rc == 1
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+  environment: "{{ proxy_env }}"
+
+
+- name: create calico yaml
+  template:
+    src: "{{ role_path }}/templates/calico.yaml.j2"
+    dest: "/tmp/calico.yaml"
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+- name: apply calico yaml
+  shell: kubectl create -f /tmp/calico.yaml
+  register: calico_output
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+
+- name: calico output
+  debug:
+    msg: "{{ calico_output.stdout }}"
+  when: (hostvars[inventory_hostname].ansible_master | default(0) == 1)
+

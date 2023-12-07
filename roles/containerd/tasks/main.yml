@@ -15,14 +15,31 @@
     dest: "{{ item.dest }}"
   loop:
     - { src: "containerd.conf", dest: "/etc/modules-load.d/containerd.conf" }
-    - { src: "config.toml", dest: "/etc/containerd/config.toml" }
+#    - { src: "config.toml", dest: "/etc/containerd/config.toml" }
     - { src: "crictl.yaml", dest: "/etc/crictl.yaml" }
+
+- name: create containerd config.toml jinja2
   
+  template:
+    src: "{{ role_path }}/templates/{{ item.src}}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: "config.toml", dest: "/opt/containerd_config.toml" }
+
+
+- name: copy containerd config.toml
+  copy:
+    src: "{{ item.src}}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: "/opt/containerd_config.toml", dest: "/etc/containerd/config.toml" }
+
+
 - name: systemctl containerd start
   ansible.builtin.systemd_service:
     name: containerd
     daemon_reload: true
-    state: started
+    state: restarted
     enabled: true
 
 - name: containerd.io version
